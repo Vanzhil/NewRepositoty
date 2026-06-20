@@ -1,0 +1,85 @@
+import java.util.EmptyStackException;
+import java.util.Arrays;
+
+public class Stack<T> {
+  private static final int DEFAULT_CAPACITY = 10;
+  private Object[] elements;
+  private int size;
+
+  public Stack() {
+    elements = new Object[DEFAULT_CAPACITY];
+    size = 0;
+  }
+
+  public void push(T item) {
+    ensureCapacity();
+    elements[size++] = item;
+  }
+
+  @SuppressWarnings("unchecked")
+  public T pop() {
+    if (isEmpty()) {
+      throw new EmptyStackException();
+    }
+    T result = (T) elements[--size];
+    elements[size] = null;
+    return result;
+  }
+
+  @SuppressWarnings("unchecked")
+  public T peek() {
+    if (isEmpty()) {
+      throw new EmptyStackException();
+    }
+    return (T) elements[size - 1];
+  }
+
+  public boolean isEmpty() {
+    return size == 0;
+  }
+
+  public int size() {
+    return size;
+  }
+
+  private void ensureCapacity() {
+    if (size == elements.length) {
+      elements = Arrays.copyOf(elements, elements.length * 2);
+    }
+  }
+
+  public void clear() {
+    Arrays.fill(elements, 0, size, null);
+    size = 0;
+  }
+
+  public static void main(String[] args) {
+    Stack<Integer> stack = new Stack<>();
+
+    System.out.println("=== Демонстрация работы стека ===");
+
+    // Добавляем элементы
+    System.out.println("Добавляем: 10, 20, 30");
+    stack.push(10);
+    stack.push(20);
+    stack.push(30);
+
+    System.out.println("Размер стека: " + stack.size());
+    System.out.println("Верхний элемент (peek): " + stack.peek());
+
+    System.out.println("\nИзвлекаем элементы (pop):");
+    while (!stack.isEmpty()) {
+      System.out.println("  " + stack.pop());
+    }
+
+    System.out.println("Стек пуст: " + stack.isEmpty());
+    System.out.println("Размер после извлечения: " + stack.size());
+
+    System.out.println("\nПопытка pop из пустого стека:");
+    try {
+      stack.pop();
+    } catch (EmptyStackException e) {
+      System.out.println("  Ошибка перехвачена: стек пуст!");
+    }
+  }
+}
