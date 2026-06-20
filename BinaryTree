@@ -1,0 +1,234 @@
+import java.util.function.Consumer;
+
+public class BinaryTree<T extends Comparable<T>> {
+  private static class BinaryTreeNode<T> {
+    T value;
+    BinaryTreeNode<T> left;
+    BinaryTreeNode<T> right;
+
+    BinaryTreeNode(T value) {
+      this.value = value;
+      this.left = null;
+      this.right = null;
+    }
+  }
+
+  private BinaryTreeNode<T> root;
+  private int count;
+
+  public BinaryTree() {
+    root = null;
+    count = 0;
+  }
+
+  public void add(T value) {
+    if (root == null) {
+      root = new BinaryTreeNode<>(value);
+    } else {
+      addRecursive(root, value);
+    }
+    count++;
+  }
+
+  private void addRecursive(BinaryTreeNode<T> node, T value) {
+    if (value.compareTo(node.value) < 0) {
+      if (node.left == null) {
+        node.left = new BinaryTreeNode<>(value);
+      } else {
+        addRecursive(node.left, value);
+      }
+    } else {
+      if (node.right == null) {
+        node.right = new BinaryTreeNode<>(value);
+      } else {
+        addRecursive(node.right, value);
+      }
+    }
+  }
+
+  public boolean contains(T value) {
+    return findNode(value) != null;
+  }
+
+  private BinaryTreeNode<T> findNode(T value) {
+    BinaryTreeNode<T> current = root;
+    while (current != null) {
+      int cmp = value.compareTo(current.value);
+      if (cmp < 0) {
+        current = current.left;
+      } else if (cmp > 0) {
+        current = current.right;
+      } else {
+        return current;
+      }
+    }
+    return null;
+  }
+
+  public boolean remove(T value) {
+    BinaryTreeNode<T> current = root;
+    BinaryTreeNode<T> parent = null;
+
+    while (current != null) {
+      int cmp = value.compareTo(current.value);
+      if (cmp < 0) {
+        parent = current;
+        current = current.left;
+      } else if (cmp > 0) {
+        parent = current;
+        current = current.right;
+      } else {
+        break;
+      }
+    }
+
+    if (current == null) {
+      return false;
+    }
+
+    count--;
+
+    if (current.right == null) {
+      if (parent == null) {
+        root = current.left;
+      } else {
+        if (parent.left == current) {
+          parent.left = current.left;
+        } else {
+          parent.right = current.left;
+        }
+      }
+    } else if (current.right.left == null) {
+      current.right.left = current.left;
+      if (parent == null) {
+        root = current.right;
+      } else {
+        if (parent.left == current) {
+          parent.left = current.right;
+        } else {
+          parent.right = current.right;
+        }
+      }
+    } else {
+      BinaryTreeNode<T> leftmost = current.right.left;
+      BinaryTreeNode<T> leftmostParent = current.right;
+      while (leftmost.left != null) {
+        leftmostParent = leftmost;
+        leftmost = leftmost.left;
+      }
+      leftmostParent.left = leftmost.right;
+      leftmost.left = current.left;
+      leftmost.right = current.right;
+      if (parent == null) {
+        root = leftmost;
+      } else {
+        if (parent.left == current) {
+          parent.left = leftmost;
+        } else {
+          parent.right = leftmost;
+        }
+      }
+    }
+    return true;
+  }
+
+  public void preOrderTraversal(Consumer<T> action) {
+    preOrderRecursive(root, action);
+  }
+
+  private void preOrderRecursive(BinaryTreeNode<T> node, Consumer<T> action) {
+    if (node != null) {
+      action.accept(node.value);
+      preOrderRecursive(node.left, action);
+      preOrderRecursive(node.right, action);
+    }
+  }
+
+  public void postOrderTraversal(Consumer<T> action) {
+    postOrderRecursive(root, action);
+  }
+
+  private void postOrderRecursive(BinaryTreeNode<T> node, Consumer<T> action) {
+    if (node != null) {
+      postOrderRecursive(node.left, action);
+      postOrderRecursive(node.right, action);
+      action.accept(node.value);
+    }
+  }
+
+  public void inOrderTraversal(Consumer<T> action) {
+    inOrderRecursive(root, action);
+  }
+
+  private void inOrderRecursive(BinaryTreeNode<T> node, Consumer<T> action) {
+    if (node != null) {
+      inOrderRecursive(node.left, action);
+      action.accept(node.value);
+      inOrderRecursive(node.right, action);
+    }
+  }
+
+  public int count() {
+    return count;
+  }
+
+  public boolean isEmpty() {
+    return count == 0;
+  }
+
+  public void clear() {
+    root = null;
+    count = 0;
+  }
+
+  public static void main(String[] args) {
+    System.out.println("=== Бинарное дерево поиска ===\n");
+
+    BinaryTree<Integer> tree = new BinaryTree<>();
+
+    int[] values = { 4, 2, 5, 1, 3, 7, 6, 8 };
+    System.out.println("Добавляем элементы:");
+    for (int v : values) {
+      System.out.print(v + " ");
+      tree.add(v);
+    }
+    System.out.println("\nКоличество узлов: " + tree.count());
+
+    System.out.println("\nСодержит 5? " + tree.contains(5));
+    System.out.println("Содержит 10? " + tree.contains(10));
+
+    System.out.println("\n--- Обходы дерева ---");
+    System.out.print("PreOrder: ");
+    tree.preOrderTraversal(v -> System.out.print(v + " "));
+    System.out.println();
+
+    System.out.print("InOrder: ");
+    tree.inOrderTraversal(v -> System.out.print(v + " "));
+    System.out.println();
+
+    System.out.print("PostOrder: ");
+    tree.postOrderTraversal(v -> System.out.print(v + " "));
+    System.out.println();
+
+    System.out.println("\n--- Удаление элементов ---");
+    System.out.println("Удаляем 2: " + tree.remove(2));
+    System.out.print("InOrder после удаления 2: ");
+    tree.inOrderTraversal(v -> System.out.print(v + " "));
+    System.out.println();
+
+    System.out.println("Удаляем 7: " + tree.remove(7));
+    System.out.print("InOrder после удаления 7: ");
+    tree.inOrderTraversal(v -> System.out.print(v + " "));
+    System.out.println();
+
+    System.out.println("Удаляем 4 (корень): " + tree.remove(4));
+    System.out.print("InOrder после удаления 4: ");
+    tree.inOrderTraversal(v -> System.out.print(v + " "));
+    System.out.println();
+
+    System.out.println("\nОчищаем дерево...");
+    tree.clear();
+    System.out.println("Дерево пусто? " + tree.isEmpty());
+    System.out.println("Количество узлов: " + tree.count());
+  }
+}
